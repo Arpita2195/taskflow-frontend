@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Variables ─────────────────────────────────── */
+:root {
+  --color-bg: #0d0e14;
+  --color-bg2: #13141d;
+  --color-surface: #1e2130;
+  --color-border: rgba(255,255,255,0.07);
+  --color-text: #e8eaf6;
+  --color-text2: #8b8fa8;
+  --accent: #6C63FF;
+  --accent2: #FF6584;
+  --accent3: #43E97B;
+}
+
+.light {
+  --color-bg: #f4f5fa;
+  --color-bg2: #ffffff;
+  --color-surface: #ffffff;
+  --color-border: rgba(0,0,0,0.08);
+  --color-text: #1a1c2e;
+  --color-text2: #5a607a;
+}
+
+/* ─── Base Styles ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+
+/* ─── Tailwind Custom Colours ──────────────────────── */
+@layer base {
+  .bg-bg     { background-color: var(--color-bg); }
+  .bg-surface { background-color: var(--color-surface); }
+  .border-main { border-color: var(--color-border); }
+  .text-primary { color: var(--color-text); }
+  .text-secondary { color: var(--color-text2); }
+  
+  /* Opacity variations for the theme-aware secondary color */
+  .bg-secondary\/5 { background-color: color-mix(in srgb, var(--color-text2) 5%, transparent); }
+  .bg-secondary\/10 { background-color: color-mix(in srgb, var(--color-text2) 10%, transparent); }
+  .hover\:bg-secondary\/5:hover { background-color: color-mix(in srgb, var(--color-text2) 5%, transparent); }
+  .hover\:bg-secondary\/10:hover { background-color: color-mix(in srgb, var(--color-text2) 10%, transparent); }
+  
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ─── Keyframe Animations ─────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.93) translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes notif-in {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ─── Utility Helpers ─────────────────────────────── */
+.font-head { font-family: 'Syne', sans-serif; }
+
+/* Gradient text */
+.grad-text {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Quill Editor Dark Mode Fixes ────────────────── */
+.ql-toolbar.ql-snow {
+  border: none !important;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.ql-container.ql-snow {
+  border: none !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 14px !important;
+}
+.ql-editor {
+  min-height: 100px;
+  color: var(--color-text) !important;
+}
+.ql-editor.ql-blank::before {
+  color: #4b5563 !important;
+  font-style: normal !important;
+}
+.ql-snow .ql-stroke { stroke: #9ca3af !important; }
+.ql-snow .ql-fill { fill: #9ca3af !important; }
+.ql-snow .ql-picker { color: #9ca3af !important; }
+.ql-snow.ql-toolbar button:hover .ql-stroke { stroke: var(--accent) !important; }
+.ql-snow.ql-toolbar button:hover .ql-fill { fill: var(--accent) !important; }
+.ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: var(--accent) !important; }
+.ql-snow.ql-toolbar button.ql-active .ql-fill { fill: var(--accent) !important; }
+
