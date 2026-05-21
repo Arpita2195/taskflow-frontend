@@ -13,11 +13,13 @@ export const SocketProvider = ({ children }) => {
     if (!user) return;
 
     let socketUrl = import.meta.env.VITE_API_URL;
-    if (!socketUrl) {
-      socketUrl = window.location.hostname === 'localhost'
-        ? 'http://localhost:5000'
-        : 'https://project-management-sgrl.onrender.com';
+    if (!socketUrl || socketUrl.includes(' ') || socketUrl.includes('to:')) {
+      socketUrl = 'https://taskflow-backend-1-q8ya.onrender.com';
     }
+    if (window.location.hostname === 'localhost') {
+      socketUrl = 'http://localhost:5000';
+    }
+    socketUrl = socketUrl.replace(/\/$/, '');
     const socket = io(socketUrl, {
       auth: { userId: user._id },
       transports: ['websocket'],

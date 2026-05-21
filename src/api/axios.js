@@ -1,12 +1,13 @@
 import axios from 'axios';
 
 const getBaseURL = () => {
-  if (import.meta.env.VITE_API_URL) {
-    return `${import.meta.env.VITE_API_URL}/api`;
+  let url = import.meta.env.VITE_API_URL;
+  if (!url || url.includes(' ') || url.includes('to:')) {
+    url = 'https://taskflow-backend-1-q8ya.onrender.com';
   }
   return window.location.hostname === 'localhost'
     ? 'http://localhost:5000/api'
-    : 'https://project-management-sgrl.onrender.com/api';
+    : `${url.replace(/\/$/, '')}/api`;
 };
 
 const api = axios.create({
@@ -33,12 +34,14 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const refreshToken = localStorage.getItem('refreshToken');
-        const apiURL = import.meta.env.VITE_API_URL || (
-          window.location.hostname === 'localhost'
-            ? 'http://localhost:5000'
-            : 'https://project-management-sgrl.onrender.com'
-        );
-        const { data } = await axios.post(`${apiURL}/api/auth/refresh`, { refreshToken });
+        let apiURL = import.meta.env.VITE_API_URL;
+        if (!apiURL || apiURL.includes(' ') || apiURL.includes('to:')) {
+          apiURL = 'https://taskflow-backend-1-q8ya.onrender.com';
+        }
+        if (window.location.hostname === 'localhost') {
+          apiURL = 'http://localhost:5000';
+        }
+        const { data } = await axios.post(`${apiURL.replace(/\/$/, '')}/api/auth/refresh`, { refreshToken });
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
