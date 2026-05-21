@@ -20,11 +20,15 @@ const AdminPanel = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
+  const [showAccountModal, setShowAccountModal] = useState(false);
+
   // Form/Selected user state
   const [selectedUser, setSelectedUser] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'user' });
   const [actionLoading, setActionLoading] = useState(false);
+
+  // My Account form
+  const [accountForm, setAccountForm] = useState({ email: '', newPassword: '', confirmPassword: '' });
 
   const loadAllUsers = async () => {
     try {
@@ -97,14 +101,15 @@ const AdminPanel = () => {
     if (!formData.name.trim() || !formData.email.trim()) {
       return toast.error('Name and email are required');
     }
-    
+    if (formData.password && formData.password.length < 6) {
+      return toast.error('Password must be at least 6 characters');
+    }
+
     setActionLoading(true);
     try {
-      const { data } = await updateUser(selectedUser._id, {
-        name: formData.name,
-        email: formData.email,
-        role: formData.role
-      });
+      const payload = { name: formData.name, email: formData.email, role: formData.role };
+      if (formData.password) payload.password = formData.password;
+      const { data } = await updateUser(selectedUser._id, payload);
       if (data.success) {
         toast.success('User updated successfully!');
         setShowEditModal(false);
@@ -112,6 +117,32 @@ const AdminPanel = () => {
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update user');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAccountSubmit = async (e) => {
+    e.preventDefault();
+    if (!accountForm.email.trim()) return toast.error('Email is required');
+    if (accountForm.newPassword && accountForm.newPassword.length < 6) {
+      return toast.error('New password must be at least 6 characters');
+    }
+    if (accountForm.newPassword !== accountForm.confirmPassword) {
+      return toast.error('Passwords do not match');
+    }
+    setActionLoading(true);
+    try {
+      const payload = { email: accountForm.email };
+      if (accountForm.newPassword) payload.password = accountForm.newPassword;
+      const { data } = await updateUser(user._id, payload);
+      if (data.success) {
+        toast.success('Account updated successfully! Please log in again if you changed your email.');
+        setShowAccountModal(false);
+        setAccountForm({ email: '', newPassword: '', confirmPassword: '' });
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update account');
     } finally {
       setActionLoading(false);
     }
@@ -147,11 +178,45 @@ const AdminPanel = () => {
           <h2 className="font-head text-2xl font-bold text-primary mb-1">🛡️ Admin Panel</h2>
           <p className="text-sm text-secondary">Manage global application users and security roles.</p>
         </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              setAccountForm({ email: user?.email || '', newPassword: '', confirmPassword: '' });
+              setShowAccountModal(true);
+            }}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-surface border border-main hover:border-accent/40 text-primary text-sm font-head font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-lg transition-all cursor-pointer"
+          >
+            🔐 My Account
+          </button>
+          <button
+            onClick={handleOpenAddModal}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-violet-500 text-white text-sm font-head font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/30 transition-all cursor-pointer"
+          >
+            ➕ Add User
+          </button>
+        </div>
+      </div>
+
+      {/* My Account Quick Info Card */}
+      <div className="bg-gradient-to-r from-accent/10 to-violet-500/10 border border-accent/20 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 animate-[fadeUp_0.3s_ease]">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-violet-500 flex items-center justify-center text-xl font-bold text-white shadow-lg">
+          {getInitials(user?.name)}
+        </div>
+        <div className="flex-1">
+          <div className="text-sm font-bold text-primary flex items-center gap-2">
+            {user?.name}
+            <span className="text-[9px] bg-yellow-500/20 text-yellow-400 font-bold px-1.5 py-0.5 rounded-md uppercase">Admin</span>
+          </div>
+          <div className="text-xs text-secondary mt-0.5">{user?.email}</div>
+        </div>
         <button
-          onClick={handleOpenAddModal}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-violet-500 text-white text-sm font-head font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/30 transition-all cursor-pointer"
+          onClick={() => {
+            setAccountForm({ email: user?.email || '', newPassword: '', confirmPassword: '' });
+            setShowAccountModal(true);
+          }}
+          className="text-xs font-semibold text-accent hover:text-violet-400 border border-accent/30 hover:border-violet-400/50 px-3 py-1.5 rounded-lg transition-all cursor-pointer"
         >
-          ➕ Add User
+          ✏️ Edit My Email / Password
         </button>
       </div>
 
@@ -407,12 +472,92 @@ const AdminPanel = () => {
                   <p className="text-[10px] text-yellow-500 mt-1">You cannot demote or modify your own security role.</p>
                 )}
               </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-secondary/70 mb-1.5 block">Reset Password <span className="text-secondary/40 normal-case font-normal">(leave blank to keep current)</span></label>
+                <input
+                  type="password"
+                  minLength={6}
+                  className="w-full bg-bg border border-main rounded-xl px-4 py-2.5 text-sm text-primary placeholder:text-secondary/40 outline-none focus:border-accent transition-all"
+                  placeholder="New password (min 6 chars)"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+              </div>
               <button
                 type="submit"
                 disabled={actionLoading}
                 className="w-full bg-gradient-to-r from-accent to-violet-500 text-white text-sm font-head font-bold py-3 rounded-xl hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-50 mt-2 cursor-pointer"
               >
                 {actionLoading ? 'Saving Changes...' : 'Save Changes'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MY ACCOUNT MODAL */}
+      {showAccountModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-[fadeIn_0.2s_ease]" onClick={(e) => e.target === e.currentTarget && setShowAccountModal(false)}>
+          <div className="bg-surface border border-accent/30 rounded-2xl w-full max-w-md shadow-2xl animate-[modal-in_0.3s_ease] overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-accent/20 flex justify-between items-center" style={{ background: 'linear-gradient(135deg, rgba(108,99,255,0.12), rgba(139,92,246,0.08))' }}>
+              <div>
+                <h2 className="font-head text-lg font-bold text-primary">🔐 My Account Settings</h2>
+                <p className="text-[11px] text-secondary mt-0.5">Update your admin email or password</p>
+              </div>
+              <button onClick={() => setShowAccountModal(false)} className="w-7 h-7 bg-bg hover:bg-accent2/20 rounded-lg flex items-center justify-center text-secondary hover:text-accent2 transition-all">✕</button>
+            </div>
+            <form onSubmit={handleAccountSubmit} className="p-5 space-y-4">
+              <div className="p-3 bg-yellow-500/5 border border-yellow-500/20 rounded-xl text-[11px] text-yellow-400 leading-relaxed">
+                🔒 These changes affect <strong>your own admin account</strong> only. If you change your email, you will need to log in again with the new email.
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-secondary/70 mb-1.5 block">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  className="w-full bg-bg border border-main rounded-xl px-4 py-2.5 text-sm text-primary placeholder:text-secondary/40 outline-none focus:border-accent transition-all"
+                  placeholder="your@email.com"
+                  value={accountForm.email}
+                  onChange={(e) => setAccountForm({ ...accountForm, email: e.target.value })}
+                />
+              </div>
+              <div className="border-t border-main pt-4">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-secondary/70 mb-1.5 block">New Password <span className="text-secondary/40 normal-case font-normal">(leave blank to keep current)</span></label>
+                <input
+                  type="password"
+                  minLength={6}
+                  className="w-full bg-bg border border-main rounded-xl px-4 py-2.5 text-sm text-primary placeholder:text-secondary/40 outline-none focus:border-accent transition-all"
+                  placeholder="New password (min 6 chars)"
+                  value={accountForm.newPassword}
+                  onChange={(e) => setAccountForm({ ...accountForm, newPassword: e.target.value })}
+                />
+              </div>
+              {accountForm.newPassword && (
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-secondary/70 mb-1.5 block">Confirm New Password</label>
+                  <input
+                    type="password"
+                    minLength={6}
+                    className={`w-full bg-bg border rounded-xl px-4 py-2.5 text-sm text-primary placeholder:text-secondary/40 outline-none transition-all ${
+                      accountForm.confirmPassword && accountForm.newPassword !== accountForm.confirmPassword
+                        ? 'border-accent2 focus:border-accent2'
+                        : 'border-main focus:border-accent'
+                    }`}
+                    placeholder="Re-enter new password"
+                    value={accountForm.confirmPassword}
+                    onChange={(e) => setAccountForm({ ...accountForm, confirmPassword: e.target.value })}
+                  />
+                  {accountForm.confirmPassword && accountForm.newPassword !== accountForm.confirmPassword && (
+                    <p className="text-[10px] text-accent2 mt-1">⚠️ Passwords do not match</p>
+                  )}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={actionLoading}
+                className="w-full bg-gradient-to-r from-accent to-violet-500 text-white text-sm font-head font-bold py-3 rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/30 transition-all disabled:opacity-50 mt-2 cursor-pointer"
+              >
+                {actionLoading ? 'Updating Account...' : '💾 Save Account Changes'}
               </button>
             </form>
           </div>
