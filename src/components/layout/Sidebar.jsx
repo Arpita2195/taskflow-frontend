@@ -102,19 +102,20 @@ const Sidebar = ({ theme, toggleTheme, isOpen, onClose }) => {
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-main flex items-center gap-2">
+        <div className="p-3 border-t border-main space-y-1.5">
           <button
             onClick={toggleTheme}
-            className="flex-1 flex items-center gap-2 px-3 py-2 bg-secondary/5 hover:bg-secondary/10 rounded-lg text-xs text-secondary transition-all"
+            className="w-full flex items-center gap-2.5 px-3 py-2 bg-secondary/5 hover:bg-secondary/10 rounded-lg text-xs text-secondary transition-all"
           >
-            {theme === 'dark' ? '🌙 Dark' : '☀️ Light'}
+            <span className="text-base">{theme === 'dark' ? '🌙' : '☀️'}</span>
+            <span>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
           </button>
           <button
             onClick={handleLogout}
-            className="w-8 h-8 border border-main hover:border-accent2/50 rounded-lg flex items-center justify-center text-secondary hover:text-accent2 transition-all"
-            title="Logout"
+            className="w-full flex items-center gap-2.5 px-3 py-2 bg-accent2/5 hover:bg-accent2/15 border border-accent2/20 hover:border-accent2/50 rounded-lg text-sm font-semibold text-accent2 transition-all cursor-pointer group"
           >
-            ↩
+            <span className="text-base group-hover:scale-110 transition-transform">🚪</span>
+            <span>Logout</span>
           </button>
         </div>
       </aside>
